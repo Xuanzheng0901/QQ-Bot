@@ -43,10 +43,11 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
             txt = MessageSegment.node_custom(user_id=959302031, 
                                              nickname="AAA黄瓜批发睦姐", 
                                              content=Message(MessageSegment.text(
-                                                f'作者: {jm_get_result.author},\n'
+                                                f'作者: {",".join(jm_get_result.authors)},\n'
                                                 f'总页数: {len(img_paths)},\n'
                                                 f'标题: {jm_get_result.name},\n'
-                                                f'关键词: {",".join(jm_get_result.tags)}')))
+                                                f'关键词: {",".join(jm_get_result.tags)}'
+                                                f'登场人物: {",".join(jm_get_result.actors)}')))
             
             node_list.append(txt)
             for index, path in enumerate(img_paths):
@@ -103,8 +104,9 @@ async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message =
     queue = asyncio.Queue(maxsize=3)
 
     def search_album(search_query: str):
-        client = jmcomic.JmOption.default().new_jm_client()
+        client = jmcomic.JmOption.copy_option(jm_option).new_jm_client()
         page : jmcomic.JmSearchPage = client.search_site(search_query=search_query, page=1)
+        print(page)
         asyncio.run(queue.put(page))
 
     if order := args.extract_plain_text():
@@ -117,4 +119,18 @@ async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message =
             text = "搜索结果:\n" + "\n".join(result)
             await search_handle.finish(MessageSegment.text(text))
         else:
-            await search_handle.finish("没有搜索到结果");
+            await search_handle.finish("没有搜索到结果\n" \
+                                        "搜尋的最佳姿勢？\n"
+                                        "【包含搜尋】\n"
+                                        "搜尋[+]全彩[空格][+]人妻,僅顯示全彩且是人妻的本本\n"
+                                        "範例:+全彩 +人妻\n\n"
+
+                                        "【排除搜尋】\n"
+                                        "搜尋全彩[空格][-]人妻,顯示全彩並排除人妻的本本\n"
+                                        "範例:全彩 -人妻\n\n"
+
+                                        "【我都要搜尋】\n"
+                                        "搜尋全彩[空格]人妻,會顯示所有包含全彩及人妻的本本\n"
+                                        "範例:全彩 人妻\n")
+    else:
+        await search_handle.finish("请发送正确的参数！")
