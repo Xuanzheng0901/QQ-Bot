@@ -1,7 +1,10 @@
 """
 该脚本的作用：测试当前ip可以访问哪些禁漫域名
 """
-
+"""
+原始网址: https://jmcomic.readthedocs.io/zh-cn/latest/tutorial/8_pick_domain/
+TODO: 根据可用性自动更新option中的域名
+"""
 from jmcomic import *
 
 option = JmOption.default()
