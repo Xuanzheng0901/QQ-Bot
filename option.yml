@@ -1,0 +1,28 @@
+client:
+  impl: api
+  domain:
+    - www.jmapiproxyxxx.vip
+    - 18comic.vip
+    - jmcomic-zzz.org
+    - 18comic-rajang.club
+    - 18comic-rajang.vip
+    - 18comic.org
+    - jmcomic-zzz.one
+    - 18comic-mhws.cc
+  retry_times: 2
+
+  postman:
+    meta_data:
+      proxies:
+        http: 127.0.0.1:7890
+        https: 127.0.0.1:7890
+
+download:
+  image:
+    suffix: .jpg
+    image: 8
+    photo: 8
+
+dir_rule:
+  base_dir: E:/qqbot/QQ-Bot/src/tmp
+  rule: Bd_Aid
