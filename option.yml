@@ -9,7 +9,7 @@ client:
     - 18comic.org
     - jmcomic-zzz.one
     - 18comic-mhws.cc
-  retry_times: 2
+  retry_times: 1
 
   postman:
     meta_data:
