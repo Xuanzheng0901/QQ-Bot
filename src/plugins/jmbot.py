@@ -1,3 +1,4 @@
+from fastapi.security import OAuth2PasswordRequestForm
 from nonebot import on_command
 from nonebot.params import CommandArg
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, Event, GroupMessageEvent
@@ -17,7 +18,7 @@ JM = on_command("jmcomic", aliases={"jm", "禁漫"}, priority=5, block=True)
 
 @JM.handle()
 async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message = CommandArg()) -> None:
-    queue = asyncio.Queue(maxsize=3)
+    queue = asyncio.Queue(maxsize=3)  # 同步函数与异步函数间通过消息队列通信
 
     async def jm_send():
         jm_get_result = await queue.get()  # 下载完成或出错时继续执行
@@ -74,23 +75,46 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
         elif type(jm_get_result) == str:
             await bot.send(event=msg, message=Message(f"下载失败，错误信息：{jm_get_result}"))
     
-    def jm_dl_cb(album: jm_entity.JmAlbumDetail, dldr):
-        nonlocal queue
-        asyncio.run(queue.put(album))
+    def jm_dl_cb(album: jm_entity.JmAlbumDetail, dldr):  # 下载成功时的回调函数
+        asyncio.run(queue.put(album))  # 向队列中铺铜album对象(本子信息)
 
     def jm_get(album_id: int):
         try:
             jmcomic.download_album(album_id, option=jm_option, callback=jm_dl_cb)
         except Exception as e:
-            asyncio.run(queue.put(str(e)))
+            asyncio.run(queue.put(str(e)))  #下载出错时put str(错误信息)
 
-    if num := args.extract_plain_text():
+    if num := args.extract_plain_text():  # 获取消息中除了/jm之外的文本
         # TODO: 根据参数判断发送pdf或合并消息
         jm_thread = threading.Thread(target=jm_get, args=(num, ), daemon=False)
-        jm_thread.start()
-        await bot.send(event=msg, message=Message("正在下载中，请耐心等待..."))
-        await jm_send()
+        jm_thread.start()  # 使用threading创建独立线程,避免长时间下载阻塞主进程
+        await bot.send(event=msg, message=Message("正在下载中，请耐心等待..."))  
+        await jm_send()  # 等待下载
         await JM.finish()
     else:
         await JM.finish("请发送正确的参数！")
         #TODO :响应式获取车牌
+
+
+search_handle = on_command("jm搜索", aliases={"jmsearch"}, priority=4, block=True)
+
+@search_handle.handle()
+async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message = CommandArg()) -> None:
+    queue = asyncio.Queue(maxsize=3)
+
+    def search_album(search_query: str):
+        client = jmcomic.JmOption.default().new_jm_client()
+        page : jmcomic.JmSearchPage = client.search_site(search_query=search_query, page=1)
+        asyncio.run(queue.put(page))
+
+    if order := args.extract_plain_text():
+        threading.Thread(target=search_album, args=(order,), daemon=False).start()
+        page: jmcomic.JmSearchPage = await queue.get()
+        if page:
+            result = []
+            for album_id, title in page:
+                result.append(f"[{album_id}]: [{title}]")
+            text = "搜索结果:\n" + "\n".join(result)
+            await search_handle.finish(MessageSegment.text(text))
+        else:
+            await search_handle.finish("没有搜索到结果");
