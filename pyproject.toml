@@ -3,7 +3,7 @@ name = "QQ-Bot"
 version = "0.1.0"
 description = "QQ-Bot"
 readme = "README.md"
-requires-python = ">=3.9, <4.0"
+requires-python = ">=3.11, <4.0"
 
 [tool.nonebot]
 adapters = [
