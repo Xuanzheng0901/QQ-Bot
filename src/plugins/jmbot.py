@@ -117,20 +117,25 @@ async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message =
             for album_id, title in page:
                 result.append(f"[{album_id}]: [{title}]")
             text = "搜索结果:\n" + "\n".join(result)
-            await search_handle.finish(MessageSegment.text(text))
+            _ = MessageSegment.text(text)
+            if len(text) > 200:
+                __ = MessageSegment.node_custom(user_id=959302031, nickname="AAA黄瓜批发睦姐", content=Message(_))
+                await bot.send_group_forward_msg(group_id=msg.group_id, messages=[__])
+            else:
+                await search_handle.finish(_)
         else:
             await search_handle.finish("没有搜索到结果\n" \
                                         "搜尋的最佳姿勢？\n"
                                         "【包含搜尋】\n"
-                                        "搜尋[+]全彩[空格][+]人妻,僅顯示全彩且是人妻的本本\n"
-                                        "範例:+全彩 +人妻\n\n"
+                                        "搜尋[+]全彩[空格][+]萝莉,僅顯示全彩且是萝莉的本本\n"
+                                        "範例:+全彩 +萝莉\n\n"
 
                                         "【排除搜尋】\n"
-                                        "搜尋全彩[空格][-]人妻,顯示全彩並排除人妻的本本\n"
-                                        "範例:全彩 -人妻\n\n"
+                                        "搜尋全彩[空格][-]萝莉,顯示全彩並排除萝莉的本本\n"
+                                        "範例:全彩 -萝莉\n\n"
 
                                         "【我都要搜尋】\n"
-                                        "搜尋全彩[空格]人妻,會顯示所有包含全彩及人妻的本本\n"
-                                        "範例:全彩 人妻\n")
+                                        "搜尋全彩[空格]萝莉,會顯示所有包含全彩及萝莉的本本\n"
+                                        "範例:全彩 萝莉\n")
     else:
         await search_handle.finish("请发送正确的参数！")
