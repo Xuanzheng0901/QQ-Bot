@@ -1,4 +1,3 @@
-from fastapi.security import OAuth2PasswordRequestForm
 from nonebot import on_command
 from nonebot.params import CommandArg
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, Event, GroupMessageEvent
@@ -26,7 +25,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
     async def jm_send():
         jm_get_result = await queue.get()  # 下载完成或出错时继续执行
         if type(jm_get_result) == jm_entity.JmAlbumDetail:
-            await bot.send(event=msg, message=Message("下载完成，正在尝试发送..."))
+            await bot.send(event=msg, message=Message(f"{jm_get_result.album_id}下载完成，正在发送..."))
 
             img_paths = os.listdir(f"{RES_PATH}/{jm_get_result.album_id}")
             #["00001.jpg", "00002.jpg", "00003.jpg", ...]
@@ -96,7 +95,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
         # TODO: 根据参数判断发送pdf或合并消息
         jm_thread = threading.Thread(target=jm_get, args=(num, ), daemon=False)
         jm_thread.start()  # 使用threading创建独立线程,避免长时间下载阻塞主进程
-        await bot.send(event=msg, message=Message("正在下载中，请耐心等待..."))  
+        await bot.send(event=msg, message=Message("下载中，请耐心等待..."))  
         await jm_send()  # 等待下载
         await JM.finish()
     else:
