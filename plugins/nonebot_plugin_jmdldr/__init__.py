@@ -1,6 +1,7 @@
 from nonebot import on_command
 from nonebot.params import CommandArg
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, Event, GroupMessageEvent
+from nonebot.permission import SUPERUSER
 
 import jmcomic
 from jmcomic import jm_entity
@@ -9,6 +10,7 @@ import img2pdf
 import os
 import threading
 import asyncio
+
 
 #TODO: 解耦、移植适配:插件改为多文件结构,,,通过交互更改配置(节点、域名等)
 
@@ -149,3 +151,11 @@ async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message =
         await search_handle.finish("请发送正确的参数！")
 
 
+tmp = on_command("jmtmp", priority=5, block=True, permission=SUPERUSER)
+
+@tmp.handle()
+async def get_temp_dir_size(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message = CommandArg()):
+    size = 0
+    for root, dirs, files in os.walk(RES_PATH):
+        size += sum([os.path.getsize(os.path.join(root, name)) for name in files])
+    await tmp.finish(Message(MessageSegment.text(f"当前tmp目录大小为: {size / 1024 / 1024:.2f}MB")))
