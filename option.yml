@@ -27,3 +27,5 @@ download:
 dir_rule:
   base_dir: E:/qqbot/QQ-Bot/src/tmp
   rule: Bd_Aid
+
+log: false

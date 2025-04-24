@@ -10,8 +10,7 @@ import os
 import threading
 import asyncio
 
-#TODO: 解耦、移植适配:插件改为多文件结构,,,动态配置支持,
-
+#TODO: 解耦、移植适配:插件改为多文件结构,,,通过交互更改配置(节点、域名等)
 
 RES_PATH = os.path.abspath('E:/qqbot/QQ-Bot/src/tmp').replace('\\', '/')  # E:/qqbot/QQ-Bot/src/tmp
 jm_option = jmcomic.create_option_by_file("E:/QQBOT/QQ-Bot/option.yml")
@@ -37,7 +36,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
             # print(img_pdf_paths)
             with open(output_pdf, "wb") as f:
                 f.write(img2pdf.convert(img_pdf_paths))
-            await bot.upload_group_file(group_id=msg.group_id, file=f"file:///{output_pdf}", name=f"{jm_get_result.album_id}.pdf")
+            await bot.upload_group_file(group_id=msg.group_id, file=f"file:///{output_pdf}", name=f"{jm_get_result.name}.pdf")
             
             # 发送合并消息
             sent_count = 0
@@ -90,8 +89,11 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
             jmcomic.download_album(album_id, option=jm_option, callback=jm_dl_cb)
         except Exception as e:
             asyncio.run(queue.put(str(e)))  #下载出错时put str(错误信息)
-
-    if num := args.extract_plain_text():  # 获取消息中除了/jm之外的文本
+    try:
+        num = int(args.extract_plain_text())
+    except:
+        await JM.finish()
+    if num:  # 获取消息中除了/jm之外的文本
         # TODO: 根据参数判断发送pdf或合并消息
         jm_thread = threading.Thread(target=jm_get, args=(num, ), daemon=False)
         jm_thread.start()  # 使用threading创建独立线程,避免长时间下载阻塞主进程
@@ -145,3 +147,5 @@ async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message =
                                         "範例:全彩 萝莉\n")
     else:
         await search_handle.finish("请发送正确的参数！")
+
+
