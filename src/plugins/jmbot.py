@@ -11,6 +11,9 @@ import os
 import threading
 import asyncio
 
+#TODO: 解耦、移植适配:插件改为多文件结构,,,动态配置支持,
+
+
 RES_PATH = os.path.abspath('E:/qqbot/QQ-Bot/src/tmp').replace('\\', '/')  # E:/qqbot/QQ-Bot/src/tmp
 jm_option = jmcomic.create_option_by_file("E:/QQBOT/QQ-Bot/option.yml")
 JM = on_command("jmcomic", aliases={"jm", "禁漫"}, priority=5, block=True)
@@ -46,19 +49,22 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
                                                 f'作者: {",".join(jm_get_result.authors)},\n'
                                                 f'总页数: {len(img_paths)},\n'
                                                 f'标题: {jm_get_result.name},\n'
-                                                f'关键词: {",".join(jm_get_result.tags)}'
+                                                f'关键词: {",".join(jm_get_result.tags)}\n'
                                                 f'登场人物: {",".join(jm_get_result.actors)}')))
             
             node_list.append(txt)
+            first_msg = 1
             for index, path in enumerate(img_paths):
                 node = MessageSegment.node_custom(user_id=959302031,
                                                   nickname="AAA黄瓜批发睦姐",
                                                   content=Message(MessageSegment.image(file= f'file:///{RES_PATH}/{jm_get_result.album_id}/{path}',
                                                                                        timeout=0xFFFFFFFF)))
                 node_list.append(node)
-                sent_count += 1  # 先+1再取余,避免0出现
+                sent_count += 1  # 避免0出现
                 if sent_count % 30 == 0:  # 每30张图发送一次,一次上传太多图片会超时
                     # TODO: 在合并消息头部添加页码标识 1-30, 31-60, 61-90...
+                    node_list.insert(first_msg, MessageSegment.node_custom(user_id=959302031, nickname="AAA黄瓜批发睦姐", content=Message(MessageSegment.text(f"第{sent_count - 29}-{sent_count}页"))))
+                    first_msg = 0  # 在第一次插入时插入到本子信息之后
                     try: 
                         await bot.send_group_forward_msg(group_id=msg.group_id, messages=node_list)
                     except:
@@ -66,7 +72,8 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
                     node_list.clear()  # 清空列表
                     # todo
                 if index == len(img_paths) - 1:  # 结束时即使不够30张也发一次
-                    if node_list:  # 排除整百的情况
+                    if node_list:  # 排除30倍数的情况。如果有30的倍数张,上面发完了会被清空,这里直接跳过
+                        node_list.insert(0, MessageSegment.node_custom(user_id=959302031, nickname="AAA黄瓜批发睦姐", content=Message(MessageSegment.text(f"第{sent_count - (sent_count % 30) + 1}-{sent_count}页"))))
                         try:
                             await bot.send_group_forward_msg(group_id=msg.group_id, messages=node_list)
                             # 发送合并消息
