@@ -12,8 +12,8 @@ import asyncio
 
 #TODO: 解耦、移植适配:插件改为多文件结构,,,通过交互更改配置(节点、域名等)
 
-RES_PATH = os.path.abspath('E:/qqbot/QQ-Bot/src/tmp').replace('\\', '/')  # E:/qqbot/QQ-Bot/src/tmp
-jm_option = jmcomic.create_option_by_file("E:/QQBOT/QQ-Bot/option.yml")
+RES_PATH = os.path.abspath('./plugins/nonebot_plugin_jmdldr/tmp').replace('\\', '/')  # E:/qqbot/QQ-Bot/src/tmp
+jm_option = jmcomic.create_option_by_file(os.path.abspath('./plugins/nonebot_plugin_jmdldr/option.yml').replace('\\', '/') )
 JM = on_command("jmcomic", aliases={"jm", "禁漫"}, priority=5, block=True)
 
 

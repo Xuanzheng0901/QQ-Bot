@@ -25,7 +25,7 @@ download:
     photo: 8
 
 dir_rule:
-  base_dir: E:/qqbot/QQ-Bot/src/tmp
+  base_dir: E:/qqbot/QQ-Bot/plugins/nonebot_plugin_jmdldr/tmp
   rule: Bd_Aid
 
-log: false
+# log: false
