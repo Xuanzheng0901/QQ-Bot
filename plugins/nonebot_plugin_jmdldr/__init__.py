@@ -79,6 +79,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
             if index == len(img_paths) - 1:  # 结束时即使不够30张也发一次
                 if node_list:  # 排除30倍数的情况。如果有30的倍数张,上面发完了会被清空,这里直接跳过
                     node_list.insert(0, MessageSegment.node_custom(user_id=usr_id, nickname=usr_name, content=Message(MessageSegment.text(f"第{sent_count - (sent_count % 30) + 1}-{sent_count}页"))))
+                    node_list.append(MessageSegment.node_custom(user_id=usr_id, nickname=usr_name, content=Message(MessageSegment.text(f"插件开源地址:\nhttps://github.com/Xuanzheng0901/QQ-Bot\n来给我点个star吧^_^"))))
                     try:
                         await bot.send_group_forward_msg(group_id=msg.group_id, messages=node_list)
                         # 发送合并消息
