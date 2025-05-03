@@ -38,13 +38,13 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
         with open(output_pdf, "wb") as f:
             f.write(img2pdf.convert(img_pdf_paths))
         await bot.upload_group_file(group_id=msg.group_id, file=f"file:///{output_pdf}", name=f"{album.name}.pdf")
-        
+
         # 发送合并消息
         sent_count = 0
         node_list = []
         txt = MessageSegment.node_custom(
-            user_id=usr_id, 
-            nickname=usr_name, 
+            user_id=usr_id,
+            nickname=usr_name,
             content=Message(MessageSegment.text(
                 f'作者: {",".join(album.authors)},\n'
                 f'总页数: {len(img_paths)},\n'
@@ -70,7 +70,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
                     content=Message(
                         MessageSegment.text(f"第{sent_count - 29}-{sent_count}页"))))
                 first_msg = 0  # 在第一次插入时插入到本子信息之后
-                try: 
+                try:
                     await bot.send_group_forward_msg(group_id=msg.group_id, messages=node_list)
                 except:
                     pass
@@ -85,7 +85,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
                     except:
                         pass
                     return
-    
+
     def jm_dl_cb(album: jm_entity.JmAlbumDetail, dldr):  # 下载成功时的回调函数
         asyncio.run(queue.put(album))  # 向队列中铺铜album对象(本子信息)
 
@@ -98,14 +98,14 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
     async def download_and_send():
         jm_thread = threading.Thread(target=jm_download, args=(num, ), daemon=False)
         jm_thread.start()  # 使用threading创建独立线程,避免长时间下载阻塞主进程
-        await bot.send(event=msg, message=Message("下载中，请耐心等待..."))  
+        await bot.send(event=msg, message=Message("下载中，请耐心等待..."))
 
         jm_get_result = await queue.get()  # 等待下载完成或出错时继续执行
         if type(jm_get_result) == jm_entity.JmAlbumDetail:
             await album_send(jm_get_result)  # 发送本子
         elif type(jm_get_result) == str:
             await bot.send(event=msg, message=Message(f"下载失败，错误信息：{jm_get_result}"))
-    
+
     try:
         num = int(args.extract_plain_text())
     except:
@@ -119,7 +119,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
             await album_send(album)  # 直接发送
         else:
             await download_and_send()  # 等待下载
-        
+
         await JM.finish()
     else:
         await JM.finish("请发送正确的参数！")
@@ -132,7 +132,7 @@ search_handle = on_command("jm搜索", aliases={"jmsearch"}, priority=4, block=T
 async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message = CommandArg()) -> None:
     queue = asyncio.Queue(maxsize=3)
     usr_name = str(msg.sender.nickname)
-    usr_id = int(msg.get_user_id()) 
+    usr_id = int(msg.get_user_id())
 
     def search_album(search_query: str):
         client = jmcomic.JmOption.copy_option(jm_option).build_jm_client()
