@@ -22,6 +22,8 @@ JM = on_command("jmcomic", aliases={"jm", "禁漫"}, priority=5, block=True)
 @JM.handle()
 async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message = CommandArg()) -> None:
     queue = asyncio.Queue(maxsize=3)  # 同步函数与异步函数间通过消息队列通信
+    usr_name = str(msg.sender.nickname)
+    usr_id = int(msg.get_user_id()) 
 
     async def jm_send():
         jm_get_result = await queue.get()  # 下载完成或出错时继续执行
@@ -43,8 +45,8 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
             # 发送合并消息
             sent_count = 0
             node_list = []
-            txt = MessageSegment.node_custom(user_id=959302031, 
-                                             nickname="AAA黄瓜批发睦姐", 
+            txt = MessageSegment.node_custom(user_id=usr_id, 
+                                             nickname=usr_name, 
                                              content=Message(MessageSegment.text(
                                                 f'作者: {",".join(jm_get_result.authors)},\n'
                                                 f'总页数: {len(img_paths)},\n'
@@ -55,15 +57,15 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
             node_list.append(txt)
             first_msg = 1
             for index, path in enumerate(img_paths):
-                node = MessageSegment.node_custom(user_id=959302031,
-                                                  nickname="AAA黄瓜批发睦姐",
+                node = MessageSegment.node_custom(user_id=usr_id,
+                                                  nickname=usr_name,
                                                   content=Message(MessageSegment.image(file= f'file:///{RES_PATH}/{jm_get_result.album_id}/{path}',
                                                                                        timeout=0xFFFFFFFF)))
                 node_list.append(node)
                 sent_count += 1  # 避免0出现
                 if sent_count % 30 == 0:  # 每30张图发送一次,一次上传太多图片会超时
                     # TODO: 在合并消息头部添加页码标识 1-30, 31-60, 61-90...
-                    node_list.insert(first_msg, MessageSegment.node_custom(user_id=959302031, nickname="AAA黄瓜批发睦姐", content=Message(MessageSegment.text(f"第{sent_count - 29}-{sent_count}页"))))
+                    node_list.insert(first_msg, MessageSegment.node_custom(user_id=usr_id, nickname=usr_name, content=Message(MessageSegment.text(f"第{sent_count - 29}-{sent_count}页"))))
                     first_msg = 0  # 在第一次插入时插入到本子信息之后
                     try: 
                         await bot.send_group_forward_msg(group_id=msg.group_id, messages=node_list)
@@ -73,7 +75,7 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
                     # todo
                 if index == len(img_paths) - 1:  # 结束时即使不够30张也发一次
                     if node_list:  # 排除30倍数的情况。如果有30的倍数张,上面发完了会被清空,这里直接跳过
-                        node_list.insert(0, MessageSegment.node_custom(user_id=959302031, nickname="AAA黄瓜批发睦姐", content=Message(MessageSegment.text(f"第{sent_count - (sent_count % 30) + 1}-{sent_count}页"))))
+                        node_list.insert(0, MessageSegment.node_custom(user_id=usr_id, nickname=usr_name, content=Message(MessageSegment.text(f"第{sent_count - (sent_count % 30) + 1}-{sent_count}页"))))
                         try:
                             await bot.send_group_forward_msg(group_id=msg.group_id, messages=node_list)
                             # 发送合并消息
@@ -112,7 +114,9 @@ search_handle = on_command("jm搜索", aliases={"jmsearch"}, priority=4, block=T
 @search_handle.handle()
 async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message = CommandArg()) -> None:
     queue = asyncio.Queue(maxsize=3)
-
+    usr_name = str(msg.sender.nickname)
+    usr_id = int(msg.get_user_id()) 
+    
     def search_album(search_query: str):
         client = jmcomic.JmOption.copy_option(jm_option).new_jm_client()
         page : jmcomic.JmSearchPage = client.search_site(search_query=search_query, page=1)
@@ -129,7 +133,7 @@ async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message =
             text = "搜索结果:\n" + "\n".join(result)
             _ = MessageSegment.text(text)
             if len(text) > 200:
-                __ = MessageSegment.node_custom(user_id=959302031, nickname="AAA黄瓜批发睦姐", content=Message(_))
+                __ = MessageSegment.node_custom(user_id=usr_id, nickname=usr_name, content=Message(_))
                 await bot.send_group_forward_msg(group_id=msg.group_id, messages=[__])
             else:
                 await search_handle.finish(_)
