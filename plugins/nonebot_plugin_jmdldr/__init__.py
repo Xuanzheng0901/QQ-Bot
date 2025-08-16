@@ -11,6 +11,7 @@ import os
 import threading
 import asyncio
 
+import plugins.nonebot_plugin_jmdldr.utilities as utilities
 
 #TODO: 解耦、移植适配:插件改为多文件结构,,,通过交互更改配置(节点、域名等)
 
@@ -35,6 +36,8 @@ async def handle_func(bot: Bot, event: Event, msg: GroupMessageEvent, args: Mess
         output_pdf = f"{RES_PATH}/{album.album_id}.pdf"
         # E:/qqbot/QQ-Bot/src/tmp/114514/114514.pdf
         img_pdf_paths = [f"{RES_PATH}/{album.album_id}/{img_path}" for img_path in img_paths]
+        # for img_path in img_pdf_paths:
+        #     utilities.image_compress(img_path)
         # print(img_pdf_paths)
         with open(output_pdf, "wb") as f:
             f.write(img2pdf.convert(img_pdf_paths))
@@ -160,6 +163,7 @@ async def search(bot: Bot, event: Event, msg: GroupMessageEvent, args: Message =
             if len(text) > 200:
                 __ = MessageSegment.node_custom(user_id=usr_id, nickname=usr_name, content=Message(_))
                 await bot.send_group_forward_msg(group_id=msg.group_id, messages=[__])
+                await search_handle.finish()
             else:
                 await search_handle.finish(_)
         else:
